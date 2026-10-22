@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 1000000000
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    int cost[n][n];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            scanf("%d", &cost[i][j]);
+
+    if (n == 1) {
+        printf("0\n");
+        return 0;
+    }
+
+    int full = 1 << n;
+    int *dp = (int *)malloc((size_t)full * n * sizeof(int));
+    for (long long i = 0; i < (long long)full * n; i++)
+        dp[i] = INF;
+
+    dp[1 * n + 0] = 0; // start at city 0, only city 0 visited
+
+    for (int mask = 1; mask < full; mask++) {
+        if (!(mask & 1)) continue;
+        for (int last = 0; last < n; last++) {
+            if (!(mask & (1 << last))) continue;
+            int cur = dp[mask * n + last];
+            if (cur >= INF) continue;
+            for (int nxt = 0; nxt < n; nxt++) {
+                if (mask & (1 << nxt)) continue;
+                if (cost[last][nxt] < 0) continue; // -1 means no edge
+                int nm = mask | (1 << nxt);
+                int val = cur + cost[last][nxt];
+                if (val < dp[nm * n + nxt])
+                    dp[nm * n + nxt] = val;
+            }
+        }
+    }
+
+    int best = INF;
+    for (int last = 1; last < n; last++) {
+        int cur = dp[(full - 1) * n + last];
+        if (cur >= INF || cost[last][0] < 0) continue;
+        if (cur + cost[last][0] < best)
+            best = cur + cost[last][0];
+    }
+
+    if (best >= INF)
+        printf("-1\n");
+    else
+        printf("%d\n", best);
+
+    free(dp);
+    return 0;
+}
