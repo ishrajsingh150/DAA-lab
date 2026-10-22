@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 1000000000000000LL
+
+int main() {
+    int n, m;
+    scanf("%d", &n);
+    scanf("%d", &m);
+
+    int *u = (int *)malloc(m * sizeof(int));
+    int *v = (int *)malloc(m * sizeof(int));
+    long long *w = (long long *)malloc(m * sizeof(long long));
+    for (int i = 0; i < m; i++)
+        scanf("%d %d %lld", &u[i], &v[i], &w[i]);
+
+    int src;
+    scanf("%d", &src);
+
+    long long *dist = (long long *)malloc((n + 1) * sizeof(long long));
+    int *parent = (int *)malloc((n + 1) * sizeof(int));
+    for (int i = 1; i <= n; i++) {
+        dist[i] = INF;
+        parent[i] = -1;
+    }
+    dist[src] = 0;
+
+    // Relax all edges n-1 times
+    for (int i = 1; i <= n - 1; i++) {
+        int changed = 0;
+        for (int j = 0; j < m; j++) {
+            if (dist[u[j]] != INF && dist[u[j]] + w[j] < dist[v[j]]) {
+                dist[v[j]] = dist[u[j]] + w[j];
+                parent[v[j]] = u[j];
+                changed = 1;
+            }
+        }
+        if (!changed) break;
+    }
+
+    // Negative cycle check
+    for (int j = 0; j < m; j++) {
+        if (dist[u[j]] != INF && dist[u[j]] + w[j] < dist[v[j]]) {
+            printf("Negative cycle detected\n");
+            return 0;
+        }
+    }
+
+    int *path = (int *)malloc((n + 1) * sizeof(int));
+    for (int i = 1; i <= n; i++) {
+        if (i == src) continue;
+        if (dist[i] == INF) {
+            printf("%d INF None\n", i);
+        } else {
+            int len = 0;
+            for (int x = i; x != -1; x = parent[x])
+                path[len++] = x;
+            printf("%d %lld ", i, dist[i]);
+            for (int k = len - 1; k >= 0; k--) {
+                printf("%d", path[k]);
+                if (k > 0) printf("->");
+            }
+            printf("\n");
+        }
+    }
+
+    free(u); free(v); free(w);
+    free(dist); free(parent); free(path);
+    return 0;
+}
